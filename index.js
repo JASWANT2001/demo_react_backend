@@ -1,44 +1,92 @@
 const express = require("express");
 const cors = require("cors");
+const { MongoClient, ObjectId } = require("mongodb");
 const app = express();
+const dotenv = require("dotenv").config();
 app.use(express.json());
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "http://localhost:5173"
   })
 );
+const URL = process.env.DB;
 
-let array = [];
 
-app.post("/", (req, res) => {
-  req.body.id = array.length + 1;
-  array.push(req.body);
-  res.json({ message: "Data Posted Sucuessfully" });
+app.post("/", async (req, res) => {
+  try {
+    const connection = await MongoClient.connect(URL);
+    const db = connection.db("user");
+    const obj = await db.collection("userdata").insertOne(req.body);
+    await connection.close();
+    res.json({ message: "Data posted Success" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Something went wrong" });
+  }
 });
 
-app.get("/", (req, res) => {
-  res.json(array);
+app.get("/", async (req, res) => {
+  try {
+    const connection = await MongoClient.connect(URL);
+    const db = connection.db("user");
+    const obj = await db.collection("userdata").find().toArray();
+    await connection.close();
+    res.json(obj);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ messaage: "Something went wrong" });
+  }
 });
 
-app.get("/:id", (req, res) => {
-  let id = req.params.id;
-  let user = array.find((user) => user.id == id);
-  res.json(user);
+app.get("/:id", async (req, res) => {
+  try {
+    const connection = await MongoClient.connect(URL);
+    const db = connection.db("user");
+    const objid = new ObjectId(req.params.id);
+    const obj = await db.collection("userdata").findOne({ _id: objid });
+    await connection.close();
+    res.json(obj);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Something went wrong" });
+  }
 });
 
-app.put("/:id", (req, res) => {
-  let id = req.params.id;
-  req.body.id = id;
-  let index = array.findIndex((user) => user.id == id);
-  array[index] = req.body;
-  res.json({ message: "Data Updated" });
+app.put("/:id", async (req, res) => {
+  try {
+    const connection = await MongoClient.connect(URL);
+    const db = connection.db("user");
+    const objid = new ObjectId(req.params.id);
+    const obj = await db
+      .collection("userdata")
+      .findOneAndUpdate(
+        { _id: objid },
+        { $set: { ...req.body } },
+        { returnOriginal: false }
+      );
+    await connection.close();
+    res.json({ messaage: "Data updated Success" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Something went wrong" });
+  }
 });
 
-app.delete("/:id", (req, res) => {
-  let id = req.params.id;
-  let index = array.findIndex((user) => user.id == id);
-  array.splice(index, 1);
-  res.json({ message: "User Deleted" });
+app.delete("/:id", async (req, res) => {
+  try {
+    const connection = await MongoClient.connect(URL);
+    const db = connection.db("user");
+    const objid = new ObjectId(req.params.id);
+    const obj = await db.collection("userdata").deleteOne({ _id: objid });
+    await connection.close();
+    res.json({ message: "Data Deleted" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Something went wrong" });
+  }
 });
 
-app.listen(3000);
+app.listen(3001);
+
+//kjaswant2305
+//DsSayBOfyHvurmRo
