@@ -6,7 +6,7 @@ const dotenv = require("dotenv").config();
 app.use(express.json());
 app.use(
   cors({
-    origin: "http://localhost:5173"
+    origin: "https://form-seven-lovat.vercel.app"
   })
 );
 const URL = process.env.DB;
